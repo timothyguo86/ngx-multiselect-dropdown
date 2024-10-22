@@ -1,0 +1,189 @@
+<div
+  class="input-dropdown"
+  [ngClass]="{ 'input-dropdown--active': _settings.open }"
+  (blur)="onTouched()"
+>
+  <div
+    class="input-dropdown__label"
+    [ngClass]="{ 'visually-hidden': _settings.labelHidden }"
+    (click)="closeDropdown()"
+    onKeyPress
+    onKeyDown
+    onKeyUp
+  >
+    {{ label }}
+  </div>
+
+  <!-- selected items display -->
+  <button
+    class="input-dropdown__display"
+    [disabled]="_settings.disabled"
+    (click)="toggleDropdown($event)"
+  >
+    @if (selectedItems.length === 0) {
+      <span class="input-dropdown__placeholder">
+        {{ _settings.placeholdersText?.displayPlaceholderText || "Select" }}
+      </span>
+    } @else {
+      @for (selectedItem of selectedItems; track $index; let i = $index) {
+        @if (!_settings.singleSelection && _settings.mode === "chip") {
+          @if (i < (this._settings.itemsShowLimit ?? 0)) {
+            <span class="input-dropdown__selected-item-chip">
+              <span class="input-dropdown__selected-item-chip__text">
+                {{ selectedItem.text }}
+              </span>
+              <button
+                class="input-dropdown__selected-item-chip__remove"
+                (click)="onItemClick(selectedItem)"
+              ></button>
+            </span>
+          }
+        } @else {
+          @if (i < (this._settings.itemsShowLimit ?? 0)) {
+            <span class="input-dropdown__selected-item-plaintext">
+              {{ selectedItem.text }}
+            </span>
+          }
+          @if (
+            i < selectedItems.length - 1 &&
+            i < (this._settings.itemsShowLimit ?? 0) - 1
+          ) {
+            <span class="input-dropdown__selected-item-plaintext__delimiter">
+              ,
+            </span>
+          }
+        }
+      }
+    }
+    @if (itemShowRemaining() > 0) {
+      <span class="input-dropdown__remaining">
+        +{{ itemShowRemaining() }} more
+      </span>
+    }
+    @if (selectedItems.length !== 0) {
+      <button
+        class="input-dropdown__clear"
+        [ngClass]="{ 'input-dropdown__clear-alt': !_settings.labelHidden }"
+        (click)="clearSelection()"
+      ></button>
+    }
+    <span
+      class="input-dropdown__caret"
+      [ngClass]="{ 'input-dropdown__caret-alt': !_settings.labelHidden }"
+    ></span>
+  </button>
+
+  <!-- dropdown -->
+  <div class="input-dropdown__dropdown" [hidden]="!_settings.open">
+    @defer (when _settings.dataFetched) {
+      <!-- search / select all -->
+      <ul>
+        @if (_data.length > 0 && _settings.allowSearchFilter) {
+          <li class="input-dropdown__search">
+            <span class="input-dropdown__search-icon"></span>
+            <input
+              class="input-dropdown__search-input"
+              [(ngModel)]="filter.text"
+              [placeholder]="
+                _settings.placeholdersText?.searchPlaceholderText || 'Search'
+              "
+              [readOnly]="_settings.disabled"
+              (ngModelChange)="onFilterTextChange()"
+              type="text"
+              aria-label="input dropdown search input"
+            />
+          </li>
+        }
+        @if (
+          _data.length > 0 &&
+          !_settings.singleSelection &&
+          _settings.enableCheckAll &&
+          _settings.limitSelection === -1 &&
+          filteredData.length !== 0
+        ) {
+          <li
+            class="input-dropdown__list-item input-dropdown__list-item--select-all"
+            (click)="toggleSelectAll()"
+            onKeyPress
+            onKeyDown
+            onKeyUp
+          >
+            <input
+              class="input-dropdown__list-item__checkbox"
+              [checked]="isAllItemsSelected()"
+              [disabled]="_settings.disabled || isLimitSelectionReached()"
+              type="checkbox"
+              aria-label="toggle select all"
+            />
+            <div class="input-dropdown__list-item__text">
+              {{
+                !isAllItemsSelected()
+                  ? _settings.selectAllText
+                  : _settings.unSelectAllText
+              }}
+            </div>
+          </li>
+        }
+      </ul>
+
+      <!-- list items -->
+      <ul [style.maxHeight]="_settings.maxHeight + 'px'">
+        @for (
+          listItem of _data | inputDropdownListFilter: filter;
+          track $index
+        ) {
+          <li
+            class="input-dropdown__list-item"
+            (click)="onItemClick(listItem)"
+            onKeyPress
+            onKeyDown
+            onKeyUp
+          >
+            <input
+              class="input-dropdown__list-item__checkbox"
+              [attr.aria-label]="listItem.text"
+              [checked]="isSelected(listItem)"
+              [disabled]="
+                _settings.disabled ||
+                (isLimitSelectionReached() && !isSelected(listItem)) ||
+                listItem.isDisabled
+              "
+              type="checkbox"
+            />
+            <div class="input-dropdown__list-item__text">
+              {{ listItem.text }}
+            </div>
+          </li>
+        }
+        @if (_data.length === 0) {
+          <li class="input-dropdown__no-data">
+            {{
+              _settings.placeholdersText?.noDataAvailablePlaceholderText ||
+                "No data available"
+            }}
+          </li>
+        }
+        @if (_data.length !== 0 && filteredData.length === 0) {
+          <li class="input-dropdown__no-filtered-data">
+            {{
+              _settings.placeholdersText?.noResultsFoundPlaceholderText ||
+                "No result found"
+            }}
+          </li>
+        }
+      </ul>
+    } @placeholder {
+      <!-- loading state -->
+      <div class="input-dropdown__preloader">
+        <div class="preloader"></div>
+      </div>
+    }
+  </div>
+
+  <!-- error messages -->
+  @if (formControlName && getErrorMessages()) {
+    @for (errorMessage of getErrorMessages(); track $index) {
+      <div class="input-dropdown__error">{{ errorMessage }}</div>
+    }
+  }
+</div>

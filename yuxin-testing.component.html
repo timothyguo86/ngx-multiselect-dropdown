@@ -1,0 +1,112 @@
+<page-title [title]="'Yuxin Test Page'"></page-title>
+
+<div class="m-16">
+  <form [formGroup]="myForm" (ngSubmit)="submitForm(selectedItems)">
+    <input-dropdown-ns
+      [formControlName]="'city'"
+      [label]="'City'"
+      [settings]="dropdownSettings"
+      [data]="mockedData"
+      (onDeSelect)="handleOnDeSelect($event)"
+      (onDeSelectAll)="handleOnDeSelectAll($event)"
+      (onDropDownClose)="handleOnDropDownClose()"
+      (onFilterChange)="handleOnFilterChange($event)"
+      (onSelect)="handleOnSelect($event)"
+      (onSelectAll)="handleOnSelectAll($event)"
+    ></input-dropdown-ns>
+
+    <div class="settings">
+      <fieldset class="fieldset">
+        <legend>Settings:</legend>
+        <label>
+          <input
+            [checked]="labelHidden"
+            (change)="toggleLabel()"
+            type="checkbox"
+          />
+          Hide Label
+        </label>
+        <label>
+          <input
+            [checked]="showAll"
+            (change)="toggleShowAll()"
+            type="checkbox"
+          />
+          Show Select All
+        </label>
+        <label>
+          <input
+            [checked]="showFilter"
+            (change)="toggleShowFilter()"
+            type="checkbox"
+          />
+          Show Search filter
+        </label>
+        <label>
+          <input
+            [checked]="disableChamblee"
+            (change)="toggleDisableChamblee()"
+            type="checkbox"
+          />
+          Disable Chamblee
+        </label>
+        <label>
+          <input
+            [checked]="disable"
+            (change)="toggleDisable()"
+            type="checkbox"
+          />
+          Disable Dropdown
+        </label>
+        <label>
+          <input
+            [checked]="mode === 'delimiter'"
+            (change)="toggleMode()"
+            type="checkbox"
+          />
+          Enable Delimiter Mode
+        </label>
+        <label>
+          <input
+            [checked]="showLimit"
+            (change)="toggleShowLimit()"
+            type="checkbox"
+          />
+          Limit 3 Cities to Show
+        </label>
+        <label>
+          <input
+            [checked]="limitSelection > 0"
+            (change)="toggleLimitSelection()"
+            type="checkbox"
+          />
+          Limit 2 Cities to Select
+        </label>
+        <label>
+          <input
+            [checked]="singleSelection"
+            (change)="toggleSingleSelection()"
+            type="checkbox"
+          />
+          Single Select Mode
+        </label>
+      </fieldset>
+      <div class="m-16">
+        <h3 class="m-8">Form valid: {{ myForm.valid }}</h3>
+        <button
+          class="m-8"
+          [disabled]="!myForm.valid"
+          (click)="resetForm()"
+          type="button"
+        >
+          Reset
+        </button>
+        <button class="m-8" [disabled]="!myForm.valid" type="submit">
+          Submit
+        </button>
+        <h3 class="m-8">{{ selectedItems.length }} Items Selected :</h3>
+        <pre>{{ selectedItems | json }}</pre>
+      </div>
+    </div>
+  </form>
+</div>

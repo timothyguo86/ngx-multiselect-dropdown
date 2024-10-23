@@ -10,8 +10,10 @@ import {
   HostBinding,
   HostListener,
   Input,
+  OnChanges,
   OnInit,
   Output,
+  SimpleChanges,
 } from '@angular/core';
 import {
   ControlContainer,
@@ -46,9 +48,13 @@ const noop = (): void => {};
   providers: [DROPDOWN_CONTROL_VALUE_ACCESSOR, InputDropdownListFilterPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class InputDropdownNsComponent implements ControlValueAccessor, OnInit {
+export class InputDropdownNsComponent
+  implements ControlValueAccessor, OnInit, OnChanges
+{
   // Label for the dropdown
   @Input({ required: true }) label: string = '';
+  // Dropdown data
+  @Input() data: Array<any> = [];
   // Form control name for the dropdown
   @Input() formControlName: string | undefined = undefined;
   // Dropdown settings object
@@ -57,32 +63,12 @@ export class InputDropdownNsComponent implements ControlValueAccessor, OnInit {
       ? Object.assign(this.defaultSettings, value)
       : Object.assign(this.defaultSettings);
   }
-  // Dropdown data
-  @Input() set data(value: Array<any>) {
-    if (value) {
-      const firstItem = value[0];
-      this._sourceDataType = typeof firstItem;
-      this._sourceDataFields = this.getFields(firstItem);
-      this._data = value.map((item: any) =>
-        typeof item === 'string' || typeof item === 'number'
-          ? new ListItem(item)
-          : new ListItem({
-              id: item[this._settings.dataConfig?.idField ?? ''],
-              text: item[this._settings.dataConfig?.textField ?? ''],
-              isDisabled: item[this._settings.dataConfig?.disabledField ?? ''],
-            }),
-      );
-      this.filteredData = this._data;
-    } else {
-      this._data = [];
-    }
-  }
 
   // Event emitter whenever the filter changes
-  @Output() onFilterChange: EventEmitter<{
+  @Output() onFilterChange = new EventEmitter<{
     filterItem: ListItem;
     matchedCount: number;
-  }> = new EventEmitter<any>();
+  }>();
   // Event emitter when the dropdown is closed
   @Output() onDropDownClose: EventEmitter<ListItem> = new EventEmitter<any>();
   // Event emitter when a list item is selected
@@ -187,6 +173,29 @@ export class InputDropdownNsComponent implements ControlValueAccessor, OnInit {
 
       if (this._settings.validators) {
         this.applyCustomValidators();
+      }
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['data']) {
+      if (this.data) {
+        const firstItem = this.data[0];
+        this._sourceDataType = typeof firstItem;
+        this._sourceDataFields = this.getFields(firstItem);
+        this._data = this.data.map((item: any) =>
+          typeof item === 'string' || typeof item === 'number'
+            ? new ListItem(item)
+            : new ListItem({
+                id: item[this._settings.dataConfig?.idField ?? ''],
+                text: item[this._settings.dataConfig?.textField ?? ''],
+                isDisabled:
+                  item[this._settings.dataConfig?.disabledField ?? ''],
+              }),
+        );
+        this.filteredData = this._data;
+      } else {
+        this._data = [];
       }
     }
   }
